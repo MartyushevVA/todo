@@ -3,6 +3,8 @@ version: '3.8'
 services:
   db:
     image: postgres:15
+    container_name: tasks
+    restart: always
     environment:
       POSTGRES_USER: lemotip
       POSTGRES_PASSWORD: wsxmok

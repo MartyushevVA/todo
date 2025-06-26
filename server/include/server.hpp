@@ -1,28 +1,35 @@
 #pragma once
-#include "socket_wrapper.hpp"
-#include <libpq-fe.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <pqxx/pqxx>
 #include <string>
 #include <stdexcept>
 #include <iostream>
 #include <vector>
+#include <cstring>
+#include <sstream>
+#include <memory>
 
 enum class option {
     ADD,
     REM,
     CHC,
     REAR,
-    MAD
+    MAD,
+    SHOW
 };
 
 struct NodeDBTask {
-    NodeDBTask(){};
+    NodeDBTask() = default;
     std::string author = "unknown";
     std::string title = "";
     std::string content = "";
 };
 
 struct NodeCLTask {
-    NodeCLTask(){};
+    NodeCLTask() = default;
     std::string author = "unknown";
     std::string created_at = "0";
     std::string title = "";
@@ -30,41 +37,40 @@ struct NodeCLTask {
     std::string completed = "false";
 };
 
+class DBI {
+public:
+    explicit DBI(const char* conninfo) {
+        try {
+            bridgeToDB = std::make_shared<pqxx::connection>(conninfo);
+            if (!bridgeToDB->is_open()) {
+                throw std::runtime_error("Failed to connect to DB");
+            }
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Database connection error: " + std::string(e.what()));
+        }
+    }
+
+    void add(const NodeDBTask&);
+    void rm(const NodeDBTask&);
+    void chc(const NodeDBTask&, const NodeDBTask&);
+    void rear(const NodeDBTask&, const NodeDBTask&);
+    void mad(const NodeDBTask&);
+    const std::vector<NodeCLTask>& getAllFrom(const std::string&);
+
+private:
+    std::shared_ptr<pqxx::connection> bridgeToDB;
+    int getIdByTitle(const std::string& author, const std::string& title);
+};
+
 class Server {
 public:
-    Server(int listen_port, const std::string& display_ip, int display_port, const char* db_conninfo);
+    Server(int listen_port, const std::string& display_ip, int display_port, const char* db_conninfo)
+        : dbconnection(db_conninfo) {}
+
     void run();
 
 private:
-    class CLI {
-    public:
-        static void handleOption(const std::string&);
-        static option getOptionFromString(const std::string&);
-        static void showAll(const std::vector<NodeCLTask>&);
-    };
-    class DBI {
-    public:
-        explicit DBI(const char* conninfo) {
-            bridgeToDB = PQconnectdb(conninfo);
-            if (PQstatus(bridgeToDB) != CONNECTION_OK) {
-                throw std::runtime_error("Failed to connect to DB: " + std::string(PQerrorMessage(bridgeToDB)));
-            }
-        }
-        ~DBI() {
-            if (bridgeToDB) PQfinish(bridgeToDB);
-        }
-
-        void add(const NodeDBTask&);
-        void rm(const NodeDBTask&);
-        void chc(const NodeDBTask&, const NodeDBTask&);
-        void rear(const NodeDBTask&, const NodeDBTask&);
-        void mad(const NodeDBTask&);
-        const std::vector<NodeCLTask>& getAllFrom(const std::string&);
-
-    private:
-        PGconn *bridgeToDB;
-        int getIdByTitle(const std::string& author, const std::string& title);
-    };
+    std::string handleOption(const std::string&);
+    option getOptionFromString(const std::string&);
     DBI dbconnection;
-    SocketWrapper listener_;
 };

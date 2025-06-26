@@ -1,15 +1,16 @@
 #include "../include/server.hpp"
 
-option Server::CLI::getOptionFromString(const std::string& str) {    
+option Server::getOptionFromString(const std::string& str) {    
     if (str == "ADD") return option::ADD;
     if (str == "REM") return option::REM;
     if (str == "CHC") return option::CHC;
     if (str == "REAR") return option::REAR;
     if (str == "MAD") return option::MAD;
+    if (str == "SHOW") return option::SHOW;
     throw std::invalid_argument("Unknown option");
 }
 
-void Server::CLI::handleOption(const std::string& input){
+std::string Server::handleOption(const std::string& input){
     option opt = getOptionFromString(input);
     NodeDBTask node;
     std::cin>>node.author;
@@ -17,13 +18,15 @@ void Server::CLI::handleOption(const std::string& input){
         case option::ADD:{
             std::cin>>node.title>>node.content;
             try{
-                DBI::add(node);
+                dbconnection.add(node);
+                return "Added.";
             } catch(...){};
         }
         case option::REM:{
             std::cin>>node.title;
             try{
-                DBI::rm(node);
+                dbconnection.rm(node);
+                return "Removed.";
             } catch(...){};
         }
         case option::CHC:{
@@ -31,7 +34,8 @@ void Server::CLI::handleOption(const std::string& input){
             NodeDBTask newNode;
             std::cin>>newNode.content;
             try{
-                DBI::chc(node, newNode);
+                dbconnection.chc(node, newNode);
+                return "Content is up to date.";
             } catch(...){};
         }
         case option::REAR:{
@@ -39,20 +43,25 @@ void Server::CLI::handleOption(const std::string& input){
             NodeDBTask newNode;
             std::cin>>newNode.title;
             try{
-                DBI::rear(node, newNode);
+                dbconnection.rear(node, newNode);
+                return "Nodes are rearranged.";
             } catch(...){};
         }
         case option::MAD:{
             std::cin>>node.title;
             try{
-                DBI::mad(node);
+                dbconnection.mad(node);
+                return "Marked as done.";
+            } catch(...){};
+        }
+        case option::SHOW:{
+            try{
+                auto nodes = dbconnection.getAllFrom(node.author);
+                std::stringstream ss;
+                for (auto node : nodes)
+                    ss<<node.author<<" "<<node.title<<" "<<node.content<<" "<<node.created_at<<node.completed<<'\n';
+                return ss.str();
             } catch(...){};
         }
     }
-    CLI::showAll(DBI::getAllFrom(node.author));
-}
-
-void Server::CLI::showAll(const std::vector<NodeCLTask>& nodes){
-    for (auto node : nodes)
-        std::cout<<node.author<<node.title<<node.content<<node.created_at<<node.completed<<'\n';
 }
