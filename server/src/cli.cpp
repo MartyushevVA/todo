@@ -63,5 +63,7 @@ std::string Server::handleOption(const std::string& input){
                 return ss.str();
             } catch(...){};
         }
+        default:
+            return "";
     }
 }

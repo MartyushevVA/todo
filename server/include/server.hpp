@@ -60,6 +60,7 @@ public:
 private:
     std::shared_ptr<pqxx::connection> bridgeToDB;
     int getIdByTitle(const std::string& author, const std::string& title);
+    std::vector<NodeCLTask> nodes;
 };
 
 class Server {

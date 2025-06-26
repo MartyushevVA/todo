@@ -12,4 +12,4 @@ target_include_directories(serv PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(server main.cpp)
 
 target_include_directories(server PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-target_link_libraries(server PRIVATE ${PostgreSQL_LIBRARIES} PUBLIC serv)
+target_link_libraries(server PRIVATE ${PostgreSQL_LIBRARIES} serv pqxx)

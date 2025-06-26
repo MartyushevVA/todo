@@ -102,7 +102,7 @@ int DBI::getIdByTitle(const std::string& author, const std::string& title) {
 }
 
 const std::vector<NodeCLTask>& DBI::getAllFrom(const std::string& author) {
-    std::vector<NodeCLTask> nodes;
+    nodes.clear();
     try {
         pqxx::work txn(*bridgeToDB);
         pqxx::result res = txn.exec_params(
