@@ -24,10 +24,8 @@ void Server::run() {
         sockaddr_in address;
         socklen_t addrlen = sizeof(address);
         int client_fd = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-        if (client_fd < 0) {
-            std::cerr << "Accept failed\n";
+        if (client_fd < 0)
             continue;
-        }
         handleClient(client_fd);
         close(client_fd);
     }
