@@ -11,6 +11,7 @@
 #include <cstring>
 #include <sstream>
 #include <memory>
+#include <cstdlib>
 
 enum class option {
     ADD,
@@ -65,13 +66,15 @@ private:
 
 class Server {
 public:
-    Server(int listen_port, const std::string& display_ip, int display_port, const char* db_conninfo)
-        : dbconnection(db_conninfo) {}
-
+    Server(int listen_port, const char* db_conninfo);
     void run();
 
 private:
     std::string handleOption(const std::string&);
+    void handleClient(int);
     option getOptionFromString(const std::string&);
+
+    int server_fd;
+    int acc_socket;
     DBI dbconnection;
 };

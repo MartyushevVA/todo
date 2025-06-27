@@ -1,15 +1,22 @@
 #include "include/server.hpp"
 #include <iostream>
 
-int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: processor <listen_port> <display_ip> <display_port>\n";
-        return 1;
+std::string get_env_var(const std::string& key) {
+    const char* val = std::getenv(key.c_str());
+    if (val == nullptr) {
+        throw std::runtime_error("Environment variable " + key + " not found");
     }
+    return std::string(val);
+}
 
+int main() {
     try {
-        Server server(std::stoi(argv[1]), argv[2], std::stoi(argv[3]),
-        "host=db port=5432 dbname=tasks user=lemotip password=wsxmok");
+        std::string conninfo = "host=" + get_env_var("DB_HOST") +
+                               " port=" + get_env_var("DB_PORT") +
+                               " dbname=" + get_env_var("DB_NAME") +
+                               " user=" + get_env_var("DB_USER") +
+                               " password=" + get_env_var("DB_PASSWORD");
+        Server server(std::stoi(get_env_var("PORT")), conninfo.c_str());
         server.run();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';

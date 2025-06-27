@@ -1,5 +1,11 @@
 #pragma once
-#include "socket_wrapper.hpp"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <cstring>
+#include <iostream>
 
 class ClientApp {
 public:
@@ -7,5 +13,5 @@ public:
     void run();
 
 private:
-    SocketWrapper socket_;
+    int client_fd;
 };
