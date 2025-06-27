@@ -10,60 +10,80 @@ option Server::getOptionFromString(const std::string& str) {
     throw std::invalid_argument("Unknown option");
 }
 
-std::string Server::handleOption(const std::string& input){
-    option opt = getOptionFromString(input);
+std::string Server::handleOption(const std::string& input) {
+    std::istringstream iss(input);
+    std::string opt_str;
+    iss >> opt_str;
+    option opt = getOptionFromString(opt_str);
+
     NodeDBTask node;
-    std::cin>>node.author;
-    switch(opt){
-        case option::ADD:{
-            std::cin>>node.title>>node.content;
-            try{
+    switch(opt) {
+        case option::ADD: {
+            iss >> node.author >> node.title;
+            std::getline(iss, node.content); // считываем остаток строки как content (с возможным пробелом)
+            node.content.erase(0, node.content.find_first_not_of(' ')); // убираем ведущие пробелы
+            try {
                 dbconnection.add(node);
                 return "Added.";
-            } catch(...){};
+            } catch (...) {
+                return "Add failed.";
+            }
         }
-        case option::REM:{
-            std::cin>>node.title;
-            try{
+        case option::REM: {
+            iss >> node.author >> node.title;
+            try {
                 dbconnection.rm(node);
                 return "Removed.";
-            } catch(...){};
+            } catch (...) {
+                return "Remove failed.";
+            }
         }
-        case option::CHC:{
-            std::cin>>node.title;
+        case option::CHC: {
+            iss >> node.author >> node.title;
             NodeDBTask newNode;
-            std::cin>>newNode.content;
-            try{
+            std::getline(iss, newNode.content);
+            newNode.content.erase(0, newNode.content.find_first_not_of(' '));
+            try {
                 dbconnection.chc(node, newNode);
-                return "Content is up to date.";
-            } catch(...){};
+                return "Content updated.";
+            } catch (...) {
+                return "Update failed.";
+            }
         }
-        case option::REAR:{
-            std::cin>>node.title;
+        case option::REAR: {
+            iss >> node.author >> node.title;
             NodeDBTask newNode;
-            std::cin>>newNode.title;
-            try{
+            iss >> newNode.title;
+            try {
                 dbconnection.rear(node, newNode);
-                return "Nodes are rearranged.";
-            } catch(...){};
+                return "Rearranged.";
+            } catch (...) {
+                return "Rearrange failed.";
+            }
         }
-        case option::MAD:{
-            std::cin>>node.title;
-            try{
+        case option::MAD: {
+            iss >> node.author >> node.title;
+            try {
                 dbconnection.mad(node);
-                return "Marked as done.";
-            } catch(...){};
+                return "Marked done.";
+            } catch (...) {
+                return "Mark failed.";
+            }
         }
-        case option::SHOW:{
-            try{
+        case option::SHOW: {
+            iss >> node.author;
+            try {
                 auto nodes = dbconnection.getAllFrom(node.author);
                 std::stringstream ss;
-                for (auto node : nodes)
-                    ss<<node.author<<" "<<node.title<<" "<<node.content<<" "<<node.created_at<<node.completed<<'\n';
+                for (auto& node : nodes) {
+                    ss << node.author << " " << node.title << " " << node.content << " " << node.created_at << " " << node.completed << "\n";
+                }
                 return ss.str();
-            } catch(...){};
+            } catch (...) {
+                return "Show failed.";
+            }
         }
         default:
-            return "";
+            return "Unknown command";
     }
 }
