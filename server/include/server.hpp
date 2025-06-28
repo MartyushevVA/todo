@@ -75,6 +75,5 @@ private:
     option getOptionFromString(const std::string&);
 
     int server_fd;
-    int acc_socket;
     DBI dbconnection;
 };

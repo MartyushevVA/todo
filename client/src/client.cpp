@@ -1,5 +1,33 @@
 #include "../include/client.hpp"
 
+void log_connected_server(int client_fd) {
+    struct sockaddr_in addr;
+    socklen_t addr_len = sizeof(addr);
+    if (getpeername(client_fd, (struct sockaddr*)&addr, &addr_len) == -1) {
+        perror("getpeername failed");
+        return;
+    }
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(addr.sin_addr), ip_str, sizeof(ip_str));
+    std::cout << "Connected to server: " << ip_str << ":" << ntohs(addr.sin_port) << std::endl;
+}
+
+void log_client_ip(int client_fd) {
+    struct sockaddr_in local_addr;
+    socklen_t addr_len = sizeof(local_addr);
+    if (getsockname(client_fd, (struct sockaddr*)&local_addr, &addr_len) == -1) {
+        perror("getsockname failed");
+        return;
+    }
+    char ip_str[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &(local_addr.sin_addr), ip_str, sizeof(ip_str)) == nullptr) {
+        perror("inet_ntop failed");
+        return;
+    }
+    std::cout << "Client local IP: " << ip_str << ":" << ntohs(local_addr.sin_port) << std::endl;
+}
+
+
 ClientApp::ClientApp(const std::string& ip, int port) {
     client_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (client_fd < 0) {
@@ -22,33 +50,45 @@ ClientApp::ClientApp(const std::string& ip, int port) {
         exit(EXIT_FAILURE);
     }
     freeaddrinfo(res);
+    log_connected_server(client_fd);
+    log_client_ip(client_fd);
 }
 
 void ClientApp::run() {
     std::string input;
-    char buffer[1024] = {0};
+    char buffer[1024];
+    
     while (true) {
-        std::cout << "Enter message: ";
-        std::getline(std::cin, input);
+        std::cout << "Enter message: " << std::flush;
+        if (!std::getline(std::cin, input)) break;
         if (input == "exit")
             break;
-        ssize_t sent = send(client_fd, input.c_str(), input.length(), 0);
-        if (sent < 0) {
-            perror("send failed");
-            break;
+
+        std::string to_send = input + "\n";
+        size_t total_sent = 0;
+        while (total_sent < to_send.size()) {
+            std::cout << "Sending (" << to_send.size() << " bytes): [" << to_send << "]" << std::endl;
+            ssize_t sent = send(client_fd, to_send.data() + total_sent, to_send.size() - total_sent, 0);
+            if (sent <= 0) {
+                perror("send failed");
+                return;
+            }
+            total_sent += sent;
         }
-        ssize_t bytes_received = read(client_fd, buffer, sizeof(buffer) - 1);
-        if (bytes_received > 0) {
-            buffer[bytes_received] = '\0';
-            std::cout << "Server response: " << buffer << std::endl;
-        } else if (bytes_received == 0) {
-            std::cout << "Server closed connection.\n";
-            break;
-        } else {
-            perror("read failed");
-            break;
+        std::string response_line;
+        char c;
+        ssize_t n;
+        std::cout << "Waiting for server response..." << std::endl;
+        while (true) {    
+            n = recv(client_fd, &c, 1, 0);
+            if (n <= 0) {
+                std::cout << "Server closed connection or error." << std::endl;
+                return;
+            }
+            if (c == '\n') break;
+            response_line += c;
         }
-        memset(buffer, 0, sizeof(buffer));
+        std::cout << "Server response: " << response_line << std::endl;
     }
     close(client_fd);
 }

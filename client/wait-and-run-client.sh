@@ -9,8 +9,10 @@ done
 
 echo "$WAIT_HOST:$WAIT_PORT is available, starting client..."
 
-while true; do
-  ./client $WAIT_HOST $WAIT_PORT
-  echo "Client exited with code $?. Restarting in 5 seconds..."
-  sleep 5
-done
+./client $WAIT_HOST $WAIT_PORT
+
+#while true; do
+#  ./client $WAIT_HOST $WAIT_PORT
+#  echo "Client exited with code $?. Restarting in 5 seconds..."
+#  sleep 5
+#done

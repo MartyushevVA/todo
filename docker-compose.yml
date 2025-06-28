@@ -42,7 +42,8 @@ services:
       WAIT_PORT: 8080
     stdin_open: true
     tty: true
-    entrypoint: ["/client/wait-and-run-client.sh"]
+    #entrypoint: ["/client/wait-and-run-client.sh"]
+    entrypoint: ["/bin/sh"]
 
 volumes:
   db_data:

@@ -10,9 +10,14 @@ done
 
 echo "$WAIT_HOST:$WAIT_PORT is available, starting server..."
 
+./server
+
+
+
+
 # Запускаем сервер в бесконечном цикле — если сервер падает, ждём и перезапускаем
-while true; do
-  ./server
-  echo "Server exited with code $?. Restarting in 5 seconds..."
-  sleep 5
-done
+#while true; do
+#  ./server
+#  echo "Server exited with code $?. Restarting in 5 seconds..."
+#  sleep 5
+#done
