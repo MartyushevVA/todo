@@ -67,7 +67,6 @@ void ClientApp::run() {
         std::string to_send = input + "\n";
         size_t total_sent = 0;
         while (total_sent < to_send.size()) {
-            std::cout << "Sending (" << to_send.size() << " bytes): [" << to_send << "]" << std::endl;
             ssize_t sent = send(client_fd, to_send.data() + total_sent, to_send.size() - total_sent, 0);
             if (sent <= 0) {
                 perror("send failed");
@@ -75,20 +74,26 @@ void ClientApp::run() {
             }
             total_sent += sent;
         }
-        std::string response_line;
-        char c;
-        ssize_t n;
-        std::cout << "Waiting for server response..." << std::endl;
-        while (true) {    
-            n = recv(client_fd, &c, 1, 0);
+        
+        uint32_t net_response_size;
+        ssize_t n = recv(client_fd, &net_response_size, sizeof(net_response_size), 0);
+        if (n <= 0) {
+            std::cout << "Failed to receive message length or server closed connection." << std::endl;
+            return;
+        }
+        uint32_t response_size = ntohl(net_response_size);
+        
+        std::string server_response(response_size, '\0');
+        size_t total_received = 0;
+        while (total_received < response_size) {
+            n = recv(client_fd, &server_response[total_received], response_size - total_received, 0);
             if (n <= 0) {
-                std::cout << "Server closed connection or error." << std::endl;
+                std::cout << "Failed to receive message or server closed connection." << std::endl;
                 return;
             }
-            if (c == '\n') break;
-            response_line += c;
+            total_received += n;
         }
-        std::cout << "Server response: " << response_line << std::endl;
+        std::cout << "Server response: " << server_response << std::endl;
     }
     close(client_fd);
 }

@@ -76,7 +76,7 @@ std::string Server::handleOption(const std::string& input) {
                 auto nodes = dbconnection.getAllFrom(node.author);
                 std::stringstream ss;
                 for (auto& node : nodes) {
-                    ss << node.author << " " << node.title << " " << node.content << " " << node.created_at << " " << node.completed << "\n";
+                    ss << "\n" << node.author << " " << node.title << " " << node.content << " " << node.created_at << " " << node.completed;
                 }
                 return ss.str();
             } catch (...) {

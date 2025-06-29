@@ -53,8 +53,15 @@ void Server::handleClient(int client_fd) {
             if (c == '\n') break;
             line += c;
         }
-        std::cout << "Received line: " << line << std::endl;
-        std::string response = "OK: " + handleOption(line) + "\n";
+        std::string response = handleOption(line) + "\n";
+        uint32_t response_size = response.size();
+        uint32_t net_response_size = htonl(response_size); // Сетевой порядок байт
+
+        ssize_t sent = send(client_fd, &net_response_size, sizeof(net_response_size), 0);
+        if (sent <= 0) {
+            perror("send length failed");
+            return;
+        }
         size_t total_sent = 0;
         while (total_sent < response.size()) {
             ssize_t sent = send(client_fd, response.data() + total_sent, response.size() - total_sent, 0);
