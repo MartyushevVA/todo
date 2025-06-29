@@ -97,7 +97,7 @@ const std::vector<NodeCLTask>& DBI::getAllFrom(const std::string& author) {
     nodes.clear();
     pqxx::work txn(*bridgeToDB);
     pqxx::result res = txn.exec_params(
-        "SELECT author, title, content, created_at, completed FROM tasks WHERE author = $1",
+        "SELECT author, title, content, created_at, completed FROM tasks WHERE author = $1 ORDER BY id",
         author
     );
     txn.commit();
