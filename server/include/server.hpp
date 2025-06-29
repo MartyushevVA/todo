@@ -22,7 +22,14 @@ enum class option {
     SHOW
 };
 
+enum class authstatus {
+    PRESENT,
+    NO,
+    WRONG
+};
+
 struct NodeDBTask {
+    NodeDBTask(const std::string& name) {author = name;}
     NodeDBTask() = default;
     std::string author = "unknown";
     std::string title = "";
@@ -51,6 +58,9 @@ public:
         }
     }
 
+    authstatus check(const std::string&, const std::string&);
+    void createUser(const std::string&, const std::string&);
+
     void add(const NodeDBTask&);
     void rm(const NodeDBTask&);
     void chc(const NodeDBTask&, const NodeDBTask&);
@@ -70,9 +80,13 @@ public:
     void run();
 
 private:
-    std::string handleOption(const std::string&);
+    authstatus tryAuth(const std::string&);
+    void newUser(const std::string&);
+    std::string handleOption(const std::string&, const std::string&);
     void handleClient(int);
     option getOptionFromString(const std::string&);
+    std::pair<std::string, std::string> getRegData(const std::string&);
+    
 
     int server_fd;
     DBI dbconnection;

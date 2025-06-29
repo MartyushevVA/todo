@@ -28,49 +28,80 @@ void Server::run() {
         char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(client_address.sin_addr), ip_str, INET_ADDRSTRLEN);
         std::cout << "New client connected: " << ip_str << ":" << ntohs(client_address.sin_port) << std::endl;
-        handleClient(acc_socket);
+        try{
+            handleClient(acc_socket);
+        } catch(...){};
         close(acc_socket);
     }
 }
 
-void Server::handleClient(int client_fd) {
+std::string receiveData(int fd){
     std::string line;
     char c;
     ssize_t n;
-
     while (true) {
-        line.clear();
-        while (true) {
-            n = recv(client_fd, &c, 1, 0);
-            if (n == 0) {
-                std::cout << "Client disconnected." << std::endl;
-                return;
-            }
-            if (n < 0) {
-                perror("recv error");
-                return;
-            }
-            if (c == '\n') break;
-            line += c;
-        }
-        std::string response = handleOption(line) + "\n";
-        uint32_t response_size = response.size();
-        uint32_t net_response_size = htonl(response_size); // Сетевой порядок байт
+        n = recv(fd, &c, 1, 0);
+        if (n <= 0)
+            throw std::runtime_error("Disconnected.");
+        if (c == '\n') break;
+        line += c;
+    }
+    return line;
+}
 
-        ssize_t sent = send(client_fd, &net_response_size, sizeof(net_response_size), 0);
-        if (sent <= 0) {
-            perror("send length failed");
-            return;
-        }
-        size_t total_sent = 0;
-        while (total_sent < response.size()) {
-            ssize_t sent = send(client_fd, response.data() + total_sent, response.size() - total_sent, 0);
-            if (sent <= 0) {
-                perror("send failed");
-                return;
+void sendData(int fd, const std::string& data){
+    uint32_t data_size = data.size();
+    uint32_t net_data_size = htonl(data_size);
+    ssize_t sent = send(fd, &net_data_size, sizeof(net_data_size), 0);
+    if (sent <= 0) 
+        throw std::runtime_error("Disconnected.");
+    size_t total_sent = 0;
+    while (total_sent < data.size()) {
+        ssize_t sent = send(fd, data.data() + total_sent, data.size() - total_sent, 0);
+        if (sent <= 0) 
+            throw std::runtime_error("Disconnected.");
+        total_sent += sent;
+    }
+}
+
+void Server::handleClient(int client_fd) {
+    bool isAuthorized = false;
+    std::string username = "";
+    authstatus Status = authstatus::NO;
+    std::string line;
+    sendData(client_fd, "Enter [login passwd] please: ");
+    while (!isAuthorized) {
+        line = receiveData(client_fd);
+        Status = tryAuth(line);
+        switch (Status){
+            case authstatus::NO:{
+                sendData(client_fd, "Confirm signing up: ");
+                std::string confirm = receiveData(client_fd);
+                if (confirm == "Yes"){
+                    newUser(line);
+                    isAuthorized = true;
+                    username = getRegData(line).first;
+                    sendData(client_fd, "Signed up successfully.\nEnter query: ");
+                }
+                else
+                    sendData(client_fd, "Oops! Try again: ");
+                break;
             }
-            total_sent += sent;
+            case authstatus::PRESENT:{
+                isAuthorized = true;
+                username = getRegData(line).first;
+                sendData(client_fd, "Signed in successfully.\nEnter query: ");
+                break;
+            }
+            default:{
+                sendData(client_fd, "Wrong password. Try again: ");
+                break;
+            }
         }
+    }
+    while(true){
+        line = receiveData(client_fd);
+        sendData(client_fd, handleOption(username, line)+ "\nEnter query: ");
     }
 }
 

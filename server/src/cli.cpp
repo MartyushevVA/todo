@@ -10,18 +10,36 @@ option Server::getOptionFromString(const std::string& str) {
     throw std::invalid_argument("Unknown option");
 }
 
-std::string Server::handleOption(const std::string& input) {
+std::pair<std::string, std::string> Server::getRegData(const std::string& line){
+    std::istringstream iss(line);
+    std::string login, passwd;
+    iss >> login >> passwd;
+    return std::pair(login, passwd);
+}
+
+authstatus Server::tryAuth(const std::string& line){
+    auto node = getRegData(line);
+    return dbconnection.check(node.first, node.second);
+}
+
+void Server::newUser(const std::string& line){
+    std::istringstream iss(line);
+    std::string login, passwd;
+    iss >> login >> passwd;
+    dbconnection.createUser(login, passwd);
+}
+
+std::string Server::handleOption(const std::string& username, const std::string& input) {
     std::istringstream iss(input);
     std::string opt_str;
     iss >> opt_str;
     option opt = getOptionFromString(opt_str);
-
-    NodeDBTask node;
+    NodeDBTask node(username);
     switch(opt) {
         case option::ADD: {
-            iss >> node.author >> node.title;
-            std::getline(iss, node.content); // считываем остаток строки как content (с возможным пробелом)
-            node.content.erase(0, node.content.find_first_not_of(' ')); // убираем ведущие пробелы
+            iss >> node.title;
+            std::getline(iss, node.content);
+            node.content.erase(0, node.content.find_first_not_of(' '));
             try {
                 dbconnection.add(node);
                 return "Added.";
@@ -30,7 +48,7 @@ std::string Server::handleOption(const std::string& input) {
             }
         }
         case option::REM: {
-            iss >> node.author >> node.title;
+            iss >> node.title;
             try {
                 dbconnection.rm(node);
                 return "Removed.";
@@ -39,7 +57,7 @@ std::string Server::handleOption(const std::string& input) {
             }
         }
         case option::CHC: {
-            iss >> node.author >> node.title;
+            iss >> node.title;
             NodeDBTask newNode;
             std::getline(iss, newNode.content);
             newNode.content.erase(0, newNode.content.find_first_not_of(' '));
@@ -51,7 +69,7 @@ std::string Server::handleOption(const std::string& input) {
             }
         }
         case option::REAR: {
-            iss >> node.author >> node.title;
+            iss >> node.title;
             NodeDBTask newNode;
             iss >> newNode.title;
             try {
@@ -62,23 +80,22 @@ std::string Server::handleOption(const std::string& input) {
             }
         }
         case option::MAD: {
-            iss >> node.author >> node.title;
+            iss >> node.title;
             try {
                 dbconnection.mad(node);
-                return "Marked done.";
+                return "Marking done.";
             } catch (...) {
                 return "Mark failed.";
             }
         }
         case option::SHOW: {
-            iss >> node.author;
             try {
                 auto nodes = dbconnection.getAllFrom(node.author);
                 std::stringstream ss;
                 for (auto& node : nodes) {
                     ss << "\n" << node.author << " " << node.title << " " << node.content << " " << node.created_at << " " << node.completed;
                 }
-                return ss.str();
+                return ss.str().substr(1);
             } catch (...) {
                 return "Show failed.";
             }

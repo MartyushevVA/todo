@@ -54,46 +54,42 @@ ClientApp::ClientApp(const std::string& ip, int port) {
     log_client_ip(client_fd);
 }
 
+std::string receiveData(int fd){
+    uint32_t net_response_size;
+    ssize_t n = recv(fd, &net_response_size, sizeof(net_response_size), 0);
+    if (n <= 0)
+        throw std::runtime_error("Failed to receive message length or server closed connection.");
+    uint32_t response_size = ntohl(net_response_size);
+    std::string server_response(response_size, '\0');
+    size_t total_received = 0;
+    while (total_received < response_size) {
+        n = recv(fd, &server_response[total_received], response_size - total_received, 0);
+        if (n <= 0)
+            throw std::runtime_error("Failed to receive message length or server closed connection.");
+        total_received += n;
+    }
+    return server_response;
+}
+
+void sendData(int fd, const std::string& data){
+    std::string to_send = data + "\n";
+    size_t total_sent = 0;
+    while (total_sent < to_send.size()) {
+        ssize_t sent = send(fd, to_send.data() + total_sent, to_send.size() - total_sent, 0);
+        if (sent <= 0) 
+            throw std::runtime_error("Disconnected.");
+        total_sent += sent;
+    }
+}
+
 void ClientApp::run() {
     std::string input;
-    char buffer[1024];
-    
     while (true) {
-        std::cout << "Enter message: " << std::flush;
+        std::cout<<receiveData(client_fd)<<std::flush;
         if (!std::getline(std::cin, input)) break;
         if (input == "exit")
             break;
-
-        std::string to_send = input + "\n";
-        size_t total_sent = 0;
-        while (total_sent < to_send.size()) {
-            ssize_t sent = send(client_fd, to_send.data() + total_sent, to_send.size() - total_sent, 0);
-            if (sent <= 0) {
-                perror("send failed");
-                return;
-            }
-            total_sent += sent;
-        }
-        
-        uint32_t net_response_size;
-        ssize_t n = recv(client_fd, &net_response_size, sizeof(net_response_size), 0);
-        if (n <= 0) {
-            std::cout << "Failed to receive message length or server closed connection." << std::endl;
-            return;
-        }
-        uint32_t response_size = ntohl(net_response_size);
-        
-        std::string server_response(response_size, '\0');
-        size_t total_received = 0;
-        while (total_received < response_size) {
-            n = recv(client_fd, &server_response[total_received], response_size - total_received, 0);
-            if (n <= 0) {
-                std::cout << "Failed to receive message or server closed connection." << std::endl;
-                return;
-            }
-            total_received += n;
-        }
-        std::cout << "Server response: " << server_response << std::endl;
+        sendData(client_fd, input);
     }
     close(client_fd);
 }
