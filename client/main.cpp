@@ -1,7 +1,7 @@
 #include "include/client.hpp"
 #include <iostream>
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
     try {
         ClientApp client(argv[1], std::stoi(argv[2]));
         client.run();

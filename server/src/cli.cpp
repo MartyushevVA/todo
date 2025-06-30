@@ -1,12 +1,12 @@
 #include "../include/server.hpp"
 
 option Server::getOptionFromString(const std::string& str) {    
-    if (str == "ADD") return option::ADD;
-    if (str == "REM") return option::REM;
-    if (str == "CHC") return option::CHC;
-    if (str == "REAR") return option::REAR;
-    if (str == "MAD") return option::MAD;
-    if (str == "SHOW") return option::SHOW;
+    if (str == "add") return option::ADD;
+    if (str == "rm") return option::REM;
+    if (str == "cc") return option::CHC;
+    if (str == "rr") return option::REAR;
+    if (str == "mad") return option::MAD;
+    if (str == "sw") return option::SHOW;
     throw std::invalid_argument("Unknown option");
 }
 
@@ -92,8 +92,8 @@ std::string Server::handleOption(const std::string& username, const std::string&
             try {
                 auto nodes = dbconnection.getAllFrom(node.author);
                 std::stringstream ss;
-                for (auto& node : nodes) {
-                    ss << "\n" << node.author << " " << node.title << " " << node.content << " " << node.created_at << " " << node.completed;
+                for (const auto& nd : nodes) {
+                    ss << "\n" << nd.author << " " << nd.title << " " << nd.content << " " << nd.created_at << " " << nd.completed;
                 }
                 return ss.str().substr(1);
             } catch (...) {

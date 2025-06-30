@@ -3,7 +3,7 @@
 void log_connected_server(int client_fd) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
-    if (getpeername(client_fd, (struct sockaddr*)&addr, &addr_len) == -1) {
+    if (getpeername(client_fd, reinterpret_cast<struct sockaddr*>(&addr), &addr_len) == -1) {
         perror("getpeername failed");
         return;
     }
@@ -15,7 +15,7 @@ void log_connected_server(int client_fd) {
 void log_client_ip(int client_fd) {
     struct sockaddr_in local_addr;
     socklen_t addr_len = sizeof(local_addr);
-    if (getsockname(client_fd, (struct sockaddr*)&local_addr, &addr_len) == -1) {
+    if (getsockname(client_fd, reinterpret_cast<struct sockaddr*>(&local_addr), &addr_len) == -1) {
         perror("getsockname failed");
         return;
     }

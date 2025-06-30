@@ -29,7 +29,7 @@ enum class authstatus {
 };
 
 struct NodeDBTask {
-    NodeDBTask(const std::string& name) {author = name;}
+    explicit NodeDBTask(const std::string& name) : author(name){};
     NodeDBTask() = default;
     std::string author = "unknown";
     std::string title = "";
@@ -84,8 +84,8 @@ private:
     void newUser(const std::string&);
     std::string handleOption(const std::string&, const std::string&);
     void handleClient(int);
-    option getOptionFromString(const std::string&);
-    std::pair<std::string, std::string> getRegData(const std::string&);
+    static option getOptionFromString(const std::string&);
+    static std::pair<std::string, std::string> getRegData(const std::string&);
     
 
     int server_fd;
