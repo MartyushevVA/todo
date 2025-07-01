@@ -99,7 +99,11 @@ void Server::handleClient(int client_fd) {
     }
     while(true){
         line = receiveData(client_fd);
-        sendData(client_fd, handleOption(username, line)+ "\nEnter query: ");
+        try{
+            sendData(client_fd, handleOption(username, line)+ "\nEnter query: ");
+        } catch (...){
+            sendData(client_fd, "Wrong option. Try again: ");
+        }
     }
 }
 

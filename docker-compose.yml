@@ -16,8 +16,6 @@ services:
   app:
     build: ./server
     image: server:latest
-    depends_on:
-      - db
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -37,15 +35,11 @@ services:
   client:
     build: ./client
     image: client:latest
-    depends_on:
-      - app
-    environment:
-      WAIT_HOST: app
-      WAIT_PORT: 8080
     stdin_open: true
     tty: true
-    #entrypoint: ["/client/wait-and-run-client.sh"]
     entrypoint: ["/bin/sh"]
 
 volumes:
   db_data:
+
+#cppcheck --enable=all --inconclusive --force --suppress=missingIncludeSystem --output-file=report.txt .

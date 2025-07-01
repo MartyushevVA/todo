@@ -16,5 +16,3 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /client
 COPY --from=builder /client/build/client .
-COPY wait-and-run-client.sh /client/wait-and-run-client.sh
-RUN chmod +x /client/wait-and-run-client.sh
