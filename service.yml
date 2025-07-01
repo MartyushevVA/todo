@@ -32,13 +32,6 @@ services:
     restart: on-failure
     entrypoint: ["/server/wait-and-run-server.sh"]
 
-  client:
-    build: ./client
-    image: client:latest
-    stdin_open: true
-    tty: true
-    entrypoint: ["/bin/sh"]
-
 volumes:
   db_data:
 

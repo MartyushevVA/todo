@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 
 class ClientApp {
