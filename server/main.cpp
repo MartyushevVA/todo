@@ -17,7 +17,6 @@ int main() {
                                " user=" + get_env_var("DB_USER") +
                                " password=" + get_env_var("DB_PASSWORD");
         Server server(std::stoi(get_env_var("PORT")), conninfo.c_str());
-        server.run();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
         return 1;

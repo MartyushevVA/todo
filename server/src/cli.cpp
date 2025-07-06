@@ -34,7 +34,7 @@ std::string Server::handleOption(const std::string& username, const std::string&
     std::string opt_str;
     iss >> opt_str;
     option opt = getOptionFromString(opt_str);
-    NodeDBTask node(username);
+    Node node(username);
     switch(opt) {
         case option::ADD: {
             iss >> node.title;
@@ -58,7 +58,7 @@ std::string Server::handleOption(const std::string& username, const std::string&
         }
         case option::CHC: {
             iss >> node.title;
-            NodeDBTask newNode;
+            Node newNode;
             std::getline(iss, newNode.content);
             newNode.content.erase(0, newNode.content.find_first_not_of(' '));
             try {
@@ -70,7 +70,7 @@ std::string Server::handleOption(const std::string& username, const std::string&
         }
         case option::REAR: {
             iss >> node.title;
-            NodeDBTask newNode;
+            Node newNode;
             iss >> newNode.title;
             try {
                 dbconnection.rear(node, newNode);

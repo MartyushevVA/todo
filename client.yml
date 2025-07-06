@@ -4,6 +4,7 @@ services:
       image: client:latest
       environment:
         SV_IP: "192.168.1.99"
+        SV_IP_backup: "172.23.42.209"
         SV_PORT: 8080
       stdin_open: true
       tty: true
