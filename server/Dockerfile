@@ -15,14 +15,17 @@ WORKDIR /server
 COPY . .
 
 RUN cmake -S . -B build && cmake --build build
+RUN strip build/server
 
 # Final image
 FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    qt6-base-dev \
+    libqt6core6 \
+    libqt6network6 \
+    libqt6sql6 \
     libqt6sql6-psql \
-    libpq-dev \
+    libpq5 \
     netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
