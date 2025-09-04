@@ -23,7 +23,7 @@ void DBI::createUser(const std::string& login, const std::string& passwd){
     txn.commit();
 }
 
-void DBI::add(const NodeDBTask& node) {
+void DBI::add(const Node& node) {
     pqxx::work txn(*bridgeToDB);
     auto res = txn.exec_params(
         "INSERT INTO tasks (author, title, content, completed) VALUES ($1, $2, $3, $4)",
@@ -33,7 +33,7 @@ void DBI::add(const NodeDBTask& node) {
     if (!res.affected_rows()) throw std::runtime_error("");
 }
 
-void DBI::rm(const NodeDBTask& node) {
+void DBI::rm(const Node& node) {
     pqxx::work txn(*bridgeToDB);
     auto res = txn.exec_params(
         "DELETE FROM tasks WHERE author = $1 AND title = $2",
@@ -43,7 +43,7 @@ void DBI::rm(const NodeDBTask& node) {
     if (!res.affected_rows()) throw std::runtime_error("");
 }
 
-void DBI::chc(const NodeDBTask& node1, const NodeDBTask& node2) {
+void DBI::chc(const Node& node1, const Node& node2) {
     pqxx::work txn(*bridgeToDB);
     auto res = txn.exec_params(
         "UPDATE tasks SET content = $1 WHERE author = $2 AND title = $3",
@@ -53,7 +53,7 @@ void DBI::chc(const NodeDBTask& node1, const NodeDBTask& node2) {
     if (!res.affected_rows()) throw std::runtime_error("");
 }
 
-void DBI::rear(const NodeDBTask& node1, const NodeDBTask& node2) {
+void DBI::rear(const Node& node1, const Node& node2) {
     int id1 = getIdByTitle(node1.author, node1.title);
     int id2 = getIdByTitle(node1.author, node2.title);
     if (id1 == -1 || id2 == -1)
@@ -69,7 +69,7 @@ void DBI::rear(const NodeDBTask& node1, const NodeDBTask& node2) {
     if (!res.affected_rows()) throw std::runtime_error("");
 }
 
-void DBI::mad(const NodeDBTask& node) {
+void DBI::mad(const Node& node) {
     pqxx::work txn(*bridgeToDB);
     pqxx::result res = txn.exec_params(
         "UPDATE tasks SET completed = true WHERE author = $1 AND title = $2",
@@ -93,7 +93,7 @@ int DBI::getIdByTitle(const std::string& author, const std::string& title) {
     return id;    
 }
 
-const std::vector<NodeCLTask>& DBI::getAllFrom(const std::string& author) {
+const std::vector<Node>& DBI::getAllFrom(const std::string& author) {
     nodes.clear();
     pqxx::work txn(*bridgeToDB);
     pqxx::result res = txn.exec_params(
@@ -102,7 +102,7 @@ const std::vector<NodeCLTask>& DBI::getAllFrom(const std::string& author) {
     );
     txn.commit();
     for (const auto& row : res) {
-        NodeCLTask node;
+        Node node;
         node.author = row["author"].c_str();
         node.title = row["title"].c_str();
         node.content = row["content"].c_str();

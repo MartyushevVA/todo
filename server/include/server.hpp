@@ -22,26 +22,15 @@ enum class option {
     SHOW
 };
 
-enum class authstatus {
-    PRESENT,
-    NO,
-    WRONG
-};
+enum class authstatus {PRESENT, NO, WRONG};
 
-struct NodeDBTask {
-    explicit NodeDBTask(const std::string& name) : author(name){};
-    NodeDBTask() = default;
+struct Node {
+    explicit Node(const std::string& name) : author(name){};
+    Node() = default;
     std::string author = "unknown";
     std::string title = "";
     std::string content = "";
-};
-
-struct NodeCLTask {
-    NodeCLTask() = default;
-    std::string author = "unknown";
     std::string created_at = "0";
-    std::string title = "";
-    std::string content = "";
     std::string completed = "false";
 };
 
@@ -61,17 +50,17 @@ public:
     authstatus check(const std::string&, const std::string&);
     void createUser(const std::string&, const std::string&);
 
-    void add(const NodeDBTask&);
-    void rm(const NodeDBTask&);
-    void chc(const NodeDBTask&, const NodeDBTask&);
-    void rear(const NodeDBTask&, const NodeDBTask&);
-    void mad(const NodeDBTask&);
-    const std::vector<NodeCLTask>& getAllFrom(const std::string&);
+    void add(const Node&);
+    void rm(const Node&);
+    void chc(const Node&, const Node&);
+    void rear(const Node&, const Node&);
+    void mad(const Node&);
+    const std::vector<Node>& getAllFrom(const std::string&);
 
 private:
     std::shared_ptr<pqxx::connection> bridgeToDB;
     int getIdByTitle(const std::string& author, const std::string& title);
-    std::vector<NodeCLTask> nodes;
+    std::vector<Node> nodes;
 };
 
 class Server {
